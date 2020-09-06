@@ -29,14 +29,20 @@ def main():
     python_bin_path = os.path.join(bin_path, 'python')
 
     for version in versions:
-        pythonxy_bin = 'python%s' % version
+        if version.startswith('pypy'):
+            pythonxy_bin = version
+            pythonx_bin = version
+        else:
+            pythonxy_bin = 'python%s' % version
+            pythonx_bin = 'python%s' % version[0]
+
         pythonxy_bin_path = os.path.join(bin_path, pythonxy_bin)
 
         # virtualenv seems to either create the binary as 'pythonX.Y', or as
         # simply 'python'. We can't trust that it won't overwrite something we
         # care about, so delete these links. They'll be rebuilt by virtualenv.
         for link_path in (os.path.join(bin_path, 'python'),
-                          os.path.join(bin_path, 'python%s' % version[0]),
+                          os.path.join(bin_path, pythonx_bin),
                           os.path.join(path, '.Python')):
             try:
                 os.unlink(link_path)
@@ -72,7 +78,7 @@ def main():
             # This logic is courtesy of virtualenv.
             try:
                 mach_o_change(pythonxy_bin_path, old_python_exec_path,
-                             new_python_exec_path)
+                              new_python_exec_path)
             except:
                 try:
                     subprocess.call(['install_name_tool', '-change',
