@@ -14,7 +14,11 @@ import shutil
 import subprocess
 import sys
 
-from virtualenv import mach_o_change
+try:
+    from virtualenv import mach_o_change
+except ImportError:
+    # This isn't running on macOS using the system Python install.
+    mach_o_change = None
 
 
 def main():
