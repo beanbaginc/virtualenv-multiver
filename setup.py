@@ -31,10 +31,15 @@ from virtualenv_multiver import get_package_version
 PACKAGE_NAME = 'virtualenv-multiver'
 
 
+with open('README.rst', 'r') as fp:
+    readme = fp.read()
+
+
 setup(name=PACKAGE_NAME,
       version=get_package_version(),
       license='MIT',
       description='Python multi-version wrapper for virtualenv.',
+      long_description=readme,
       url='https://github.com/beanbaginc/virtualenv-multiver',
       maintainer='Christian Hammond',
       maintainer_email='christian@beanbaginc.com',
