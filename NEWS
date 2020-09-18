@@ -1,3 +1,21 @@
+version 2.0 final (18-September-2020):
+	* Updated to work with modern versions of virtualenv.
+
+	  Modern versions of virtualenv have a lot of new machinery to set up a
+	  virtualenv and to store configuration. There were a lot of complications
+	  to sort out from this, but virtualenv-multiver should now be more
+	  future-proof as a result. If you hit any issues, please let us know.
+
+	  Older versions of virtualenv should still be supported.
+
+	* The order of Python versions passed to virtualenv-multiver no longer
+	  matters.
+
+	  It used to be that the order impacted which version of Python the
+	  `python` and `pip` scripts would link to. Now the versions are sorted
+	  and scripts, symlinks, and binaries are generated with more care.
+
+
 version 1.0 final (5-September-2020):
 	* Added support for creating a virtualenv on pypy.
 
