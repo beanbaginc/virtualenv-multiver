@@ -418,12 +418,11 @@ def main():
         pythonxy_bin_path = os.path.join(bin_path, pythonxy_bin)
         pythonx_bin_path = os.path.join(bin_path, pythonx_bin)
 
-        # Generate a wrapper python script for the old interpreter.
-        with open(pythonxy_bin_path, 'w') as fp:
-            fp.write('#!/bin/sh\n')
-            fp.write('%s $@\n' % priv_pythonxy_bin)
-
-        os.chmod(pythonxy_bin_path, 0o755)
+        # Link the wrapper in bin/ to the private interpreter in .bin-X.Y.
+        # This should result in the correct interpreter being run, but with
+        # the pyvenv.cfg (from modern virtualenvs) being found within the
+        # .bin-X.Y.
+        symlink(priv_pythonxy_bin, pythonxy_bin_path)
 
         # Rename any pyvenv.cfg and point to the new file in any site.py.
         update_pyvenv(venv_path=path,
