@@ -320,8 +320,6 @@ def main():
 
     bin_path = os.path.join(path, 'bin')
     lib_path = os.path.join(path, 'lib')
-    python_bin_path = os.path.join(bin_path, 'python')
-    pyvenv_cfg_path = os.path.join(path, 'pyvenv.cfg')
 
     major_py_bins = {}
     major_py_latest = {}
@@ -524,5 +522,9 @@ def main():
     #
     # pip does look for this, though, in order to see if system packages are
     # used. So we need to set that.
-    symlink(os.path.join('.bin-%s' % versions[-1], 'pyvenv.cfg'),
-            os.path.join(path, 'pyvenv.cfg'))
+    symlink(
+        os.path.relpath(
+            os.path.abspath(os.path.join(path, '.bin-%s' % versions[-1],
+                                         'pyvenv.cfg')),
+            path),
+        os.path.join(path, 'pyvenv.cfg'))
