@@ -291,6 +291,26 @@ def create_versioned_symlinks(bin_path, major_py_bins, major_py_latest):
             break
 
 
+def create_pydorc(venv_path):
+    """Create a .pydorc file with the list of versions in a virtualenv.
+
+    Args:
+        venv_path (str):
+            The path to the virtualenv.
+    """
+    versions = sorted(
+        (
+            _subdir.split('-')[-1]
+            for _subdir in os.listdir(venv_path)
+            if _subdir.startswith('.bin-')
+        ),
+        key=make_version_sort_key)
+
+    with open(os.path.join(venv_path, '.pydorc'), 'w') as fp:
+        fp.write('[pydo]\n')
+        fp.write('pyvers=%s\n' % ' '.join(versions))
+
+
 def make_version_sort_key(version):
     """Return a key for a Python version, for sorting purposes.
 
@@ -520,6 +540,9 @@ def main():
     create_versioned_symlinks(bin_path=bin_path,
                               major_py_bins=major_py_bins,
                               major_py_latest=major_py_latest)
+
+    # Create a .pydorc file for pydo.
+    create_pydorc(path)
 
     # Create a single pyvenv.cfg for this virtualenv based on the last version
     # installed. This is still not ideal, because it's version-specific, but

@@ -8,6 +8,9 @@ of Python to be usable within a single environment. This is really handy when
 you're doing development and testing across a range of Python versions, and
 you don't want to have to juggle your active environment for every version.
 
+It also comes with a handy tool called ``pydo``, which can run a Python/Pip
+command across a range of Python versions.
+
 
 .. _virtualenv: https://virtualenv.pypa.io/en/latest/
 
@@ -20,8 +23,8 @@ Simple::
     $ pip install virtualenv-multiver
 
 
-Usage
-=====
+Virtualenv Usage
+================
 
 Also simple. To create a new virtual environment, just provide the path to
 that environment and the versions you want installed. For example::
@@ -36,11 +39,119 @@ The resulting virtual environment will include all those versions of Python
 without any additional configuration.
 
 
+pydo Usage
+==========
+
+``pydo`` can run a command across a range of Python versions. It looks for
+a ``commandX.Y`` or ``command-X.Y`` that it can run for the provided command
+and for each version of Python.
+
+Usage::
+
+    $ pydo [<version> [<version> ...]] <command>
+
+Versions are in X.Y form, and can include ranges like ``3.8-3.10``.
+
+For example::
+
+    $ pydo 2.7 3.6 3.8-3.10 pip install -e .
+
+This will automatically run::
+
+    $ python2.7 -m pip install -e .
+    $ python3.6 -m pip install -e .
+    $ python3.8 -m pip install -e .
+    $ python3.9 -m pip install -e .
+    $ python3.10 -m pip install -e .
+
+If you don't specify any versions, the Python versions available in the
+virtualenv-multiver environment will be used.
+
+You can also configure the list of default versions in ``.pydorc``,
+``pyproject.toml``, or ``setup.cfg``.
+
+
+Configuring pydo
+----------------
+
+``pydo`` first checks for a ``$VIRTUAL_ENV/.pydorc`` file.
+
+If not found, it will check in the current directory and all parent
+directories for each of these files:
+
+* ``.pydorc``
+* ``pyproject.toml``
+* ``setup.cfg``
+
+
+.pydorc
+~~~~~~~
+
+``pydo`` first checks for a ``.pydorc`` file. One is automatically generated
+in your virtualenv-multiver environment (for environments created using
+``virtualenv-multiver`` 2.1 or higher).
+
+Format:
+
+.. code-block:: ini
+
+   [pydo]
+   pyvers=<version>[, <version>, ...]
+
+For example:
+
+.. code-block:: ini
+
+   [pydo]
+   pyvers=2.7,3.8-3.11
+
+
+pyproject.toml
+~~~~~~~~~~~~~~
+
+``pydo`` next checks for a ``pyproject.toml`` file. This requires ``toml``
+support in your Python environment.
+
+Format:
+
+.. code-block:: ini
+
+   [tool.pydo]
+   pyvers = [<version>, ...]
+
+For example:
+
+.. code-block:: ini
+
+   [tool.pydo]
+   pyvers = ["2.7", "3.8-3.11"]
+
+
+setup.cfg
+~~~~~~~~~
+
+``pydo`` finally checks for a ``setup.cfg`` file.
+
+Format:
+
+.. code-block:: ini
+
+   [pydo]
+   pyvers=<version>[, <version>, ...]
+
+For example:
+
+.. code-block:: ini
+
+   [pydo]
+   pyvers=2.7,3.8-3.11
+
+
 FAQ
 ===
 
-How does this work?
--------------------
+How does virtualenv-multiver work?
+----------------------------------
 
 ``virtualenv-multiver`` runs through the list of Python versions provided and
 calls out to ``virtualenv`` for each version
