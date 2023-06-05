@@ -23,6 +23,7 @@ except ImportError:
     # This isn't running on macOS using the system Python install.
     mach_o_change = None
 
+from virtualenv_multiver.config import get_pyvers
 from virtualenv_multiver.utils import norm_pyvers
 
 
@@ -332,13 +333,21 @@ def make_version_sort_key(version):
 
 
 def main():
-    if len(sys.argv) < 3:
-        sys.stderr.write('Usage: virtualenv-multiver <path> <X.Y>...\n')
+    if len(sys.argv) < 2:
+        sys.stderr.write('Usage: virtualenv-multiver <path> [<X.Y> ...]\n')
         sys.exit(1)
 
+    if len(sys.argv) == 2:
+        versions = get_pyvers()
+
+        if not versions:
+            sys.stderr.write('Usage: virtualenv-multiver <path> <X.Y> ...\n')
+            sys.exit(1)
+    else:
+        versions = sorted(sys.argv[2:],
+                          key=make_version_sort_key)
+
     path = sys.argv[1]
-    versions = sorted(sys.argv[2:],
-                      key=make_version_sort_key)
 
     bin_path = os.path.join(path, 'bin')
     lib_path = os.path.join(path, 'lib')
