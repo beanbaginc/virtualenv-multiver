@@ -17,7 +17,7 @@ Installation
 
 Simple::
 
-    pip install virtualenv-multiver
+    $ pip install virtualenv-multiver
 
 
 Usage
@@ -26,11 +26,11 @@ Usage
 Also simple. To create a new virtual environment, just provide the path to
 that environment and the versions you want installed. For example::
 
-    virtualenv-multiver ~/venvs/my-project 2.7 3.6 3.7 3.8
+    $ virtualenv-multiver ~/venvs/my-project 2.7 3.8-3.11
 
-Or::
+Or for pypy::
 
-    virtualenv-multiver ~/venvs/my-project pypy pypy3
+    $ virtualenv-multiver ~/venvs/my-project pypy pypy3
 
 The resulting virtual environment will include all those versions of Python
 without any additional configuration.

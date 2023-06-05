@@ -23,6 +23,8 @@ except ImportError:
     # This isn't running on macOS using the system Python install.
     mach_o_change = None
 
+from virtualenv_multiver.utils import norm_pyvers
+
 
 DEBUG = (os.getenv('DEBUG') == '1')
 
@@ -348,6 +350,12 @@ def main():
                 '         may not want to use virtualenv-multiver for this\n'
                 '         if that will be a problem.\n'
                 '\n')
+
+    try:
+        versions = norm_pyvers(versions)
+    except ValueError as e:
+        sys.stderr.write('%s\n' % e)
+        sys.exit(1)
 
     print('Installing virtual environments for %s' % ', '.join(versions))
 
