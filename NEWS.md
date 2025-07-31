@@ -1,6 +1,66 @@
 Releases and Updates
 ====================
 
+Version 3.0 (30-July-2025)
+--------------------------
+
+* Added support for specifying version ranges.
+
+  `virtualenv-multiver` now supports specifying Python versions as a range.
+  For example, `3.11-3.14`. This can be combined with individual versions
+  to simplify setting up an environment with subsets of Python versions.
+
+* Added a `pydo` command for running commands across all installed Python
+  versions.
+
+  `pydo` can be used to run `pip` or Python scripts using every Python
+  version installed in a virtualenv. For example:
+
+  ```shell
+  $ pydo pip install <package>
+  $ pydo ./my-script.py
+  $ pydo python -m some-module
+  ```
+
+* Added a configuration file for specifying the Python versions used to
+  create an environment.
+
+  The list of Python versions for an environment can now be placed in a
+  `.pydorc`, `pyproject.toml`, or `setup.cfg`.
+
+  For example:
+
+  ```ini
+  # .pydorc or setup.cfg
+  [pydo]
+  pyvers=2.7,3.8-3.11
+
+  # pyproject.toml
+  [tool.pydo]
+  pyvers = ["2.7", "3.8-3.11"]
+  ```
+
+* The latest compatible `pip`, `setuptools`, and `wheel` are now downloaded
+  and installed by default.
+
+  We now explicitly download the latest compatible versions in order to
+  ensure working installs for all Python versions, to prevent too-new versions
+  from being installed for older Python versions.
+
+* Added arguments for controlling pip install behavior.
+
+  `virtualenv-multiver` now supports options for controlling whether `pip`,
+  `setuptools`, and `wheel` packages are installed, using `--no-pip`,
+  `--no-setuptools`, and `--no-wheel`, respectively.
+
+  `--no-download` can also be used to prevent downloading the latest compatible
+  packages for the environment.
+
+* Dropped support for installing this package on Python 3.7 or older.
+
+* Fixed issues generating the `pyvenv.cfg` symlink.
+
+
 Version 2.0.1 (20-January-2021)
 -------------------------------
 
