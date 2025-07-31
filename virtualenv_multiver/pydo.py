@@ -17,7 +17,7 @@ You can also configure the list of default versions in ``.pydorc``,
 ``pyproject.toml``, or ``setup.cfg``.
 
 Version Added:
-    2.1
+    3.0
 """
 
 from __future__ import print_function, unicode_literals

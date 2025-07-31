@@ -1,7 +1,7 @@
 """Internal utility functions for virtualenv-multiver.
 
 Version Added:
-    2.1
+    3.0
 """
 
 import os

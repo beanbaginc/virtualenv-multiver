@@ -1,16 +1,15 @@
 """Configuration loading for virtualenv-multiver and pydo.
 
 Version Added:
-    2.1
+    3.0
 """
 
 import os
 import sys
 
-import six
-from six.moves.configparser import (NoOptionError,
-                                    NoSectionError,
-                                    RawConfigParser)
+from configparser import (NoOptionError,
+                          NoSectionError,
+                          RawConfigParser)
 
 from virtualenv_multiver.utils import split_pyvers
 
@@ -58,13 +57,13 @@ def _load_toml_pyvers(config_path):
     except KeyError:
         return None
 
-    if isinstance(pyvers, six.string_types):
+    if isinstance(pyvers, str):
         return split_pyvers(pyvers)
     elif isinstance(pyvers, list):
         norm_pyvers = []
 
         for pyver in pyvers:
-            if isinstance(pyver, six.string_types):
+            if isinstance(pyver, str):
                 norm_pyvers.append(pyver)
             else:
                 sys.stderr.write('%r in %s is a %s, not a string! Skipping.\n'
