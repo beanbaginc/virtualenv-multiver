@@ -1,14 +1,17 @@
-# Configures a single virtualenv to support multiple versions of Python.
-#
-# This will handle the hard work of installing each version of Python and
-# patching the installed files.
-#
-# Primarily, this is important on the Mac, which makes use of a .Python
-# symlink for executing the build of Python. This symlink is tied to a
-# specific version of Python, and achieving cross-version support means
-# changing the reference in the python binary.
+"""Configures a single virtualenv to support multiple versions of Python.
+
+This will handle the hard work of installing each version of Python and
+patching the installed files.
+
+Primarily, this is important on the Mac, which makes use of a .Python
+symlink for executing the build of Python. This symlink is tied to a
+specific version of Python, and achieving cross-version support means
+changing the reference in the python binary.
+"""
+
 from __future__ import unicode_literals
 
+import argparse
 import itertools
 import os
 import re
@@ -23,6 +26,7 @@ except ImportError:
     # This isn't running on macOS using the system Python install.
     mach_o_change = None
 
+from virtualenv_multiver import get_package_version
 from virtualenv_multiver.config import get_pyvers
 from virtualenv_multiver.utils import norm_pyvers
 
@@ -333,21 +337,88 @@ def make_version_sort_key(version):
 
 
 def main():
-    if len(sys.argv) < 2:
-        sys.stderr.write('Usage: virtualenv-multiver <path> [<X.Y> ...]\n')
-        sys.exit(1)
+    argparser = argparse.ArgumentParser(
+        prog='virtualenv-multiver',
+        description='Install a virtualenv containing many Python versions.')
 
-    if len(sys.argv) == 2:
+    argparser.add_argument(
+        '--version',
+        action='version',
+        version=get_package_version(),
+        help='Display the version.')
+    argparser.add_argument(
+        '-v',
+        '--verbose',
+        action='store_true',
+        dest='verbose',
+        default=False,
+        help='Show extra verbose output.')
+    argparser.add_argument(
+        '-q',
+        '--quiet',
+        action='store_true',
+        dest='quiet',
+        help='Run silently.')
+    argparser.add_argument(
+        '--download',
+        action='store_true',
+        default=True,
+        dest='download',
+        help=(
+            'Download the initial packages for pip, setuptools, and wheel. '
+            'This is the default, helping ensure the widest compatibility '
+            'with older versions of Python.'
+        ))
+    argparser.add_argument(
+        '--no-download',
+        action='store_false',
+        dest='download',
+        help=(
+            'Do not download the initial packages for pip, setuptools, and '
+            'wheel.'
+        ))
+    argparser.add_argument(
+        '--no-pip',
+        action='store_false',
+        default=True,
+        dest='install_pip',
+        help='Do not install pip in the virtualenv.')
+    argparser.add_argument(
+        '--no-setuptools',
+        action='store_false',
+        default=True,
+        dest='install_setuptools',
+        help='Do not install setuptools in the virtualenv.')
+    argparser.add_argument(
+        '--no-wheel',
+        action='store_false',
+        default=True,
+        dest='install_wheel',
+        help='Do not install wheel in the virtualenv.')
+
+    argparser.add_argument(
+        'path',
+        help='Path to the virtualenv to create.')
+    argparser.add_argument(
+        'versions',
+        metavar='pyver',
+        nargs='*',
+        help='A space-separated list of Python versions to include.')
+
+    options = argparser.parse_args(sys.argv[1:])
+
+    if not options.versions:
         versions = get_pyvers()
 
         if not versions:
             sys.stderr.write('Usage: virtualenv-multiver <path> <X.Y> ...\n')
             sys.exit(1)
     else:
-        versions = sorted(sys.argv[2:],
+        versions = sorted(options.versions,
                           key=make_version_sort_key)
 
-    path = sys.argv[1]
+    path = options.path
+    show_output = options.verbose or not options.quiet
 
     bin_path = os.path.join(path, 'bin')
     lib_path = os.path.join(path, 'lib')
@@ -386,7 +457,31 @@ def main():
         sys.stderr.write('%s\n' % e)
         sys.exit(1)
 
-    print('Installing virtual environments for %s' % ', '.join(versions))
+    assert versions
+
+    if show_output:
+        print('Installing virtual environments for %s' % ', '.join(versions))
+
+    common_command = ['virtualenv']
+
+    if options.verbose:
+        common_command.append('-v')
+    elif options.quiet:
+        common_command.append('-q')
+
+    if options.download:
+        common_command.append('--download')
+    else:
+        common_command.append('--no-download')
+
+    if not options.install_pip:
+        common_command.append('--no-pip')
+
+    if not options.install_setuptools:
+        common_command.append('--no-setuptools')
+
+    if not options.install_wheel:
+        common_command.append('--no-wheel')
 
     # Begin building the virtualenvs.
     for version in versions:
@@ -406,7 +501,7 @@ def main():
             pythonx_bin = 'python%s' % major_version
 
         # Install this version of Python into the virtualenv.
-        subprocess.call(['virtualenv', '-p', pythonxy_bin, path])
+        subprocess.call(common_command + ['-p', pythonxy_bin, path])
 
         pythonxy_bin_path = os.path.join(bin_path, pythonxy_bin)
 
@@ -451,7 +546,6 @@ def main():
 
         # Recompute these, since we've moved things around.
         pythonxy_bin_path = os.path.join(bin_path, pythonxy_bin)
-        pythonx_bin_path = os.path.join(bin_path, pythonx_bin)
 
         # Link the wrapper in bin/ to the private interpreter in .bin-X.Y.
         # This should result in the correct interpreter being run, but with
@@ -480,7 +574,6 @@ def main():
             new_mac_python_link = os.path.join(path, '.Py%s' % version)
             shutil.move(mac_python_link, new_mac_python_link)
 
-            orig_python_path = os.readlink(new_mac_python_link)
             old_python_exec_path = '@executable_path/../.Python'
             new_python_exec_path = '@executable_path/../.Py%s' % version
 
@@ -512,12 +605,9 @@ def main():
         ]))
 
         if is_pypy:
-            python_lib_dir = os.path.join(path, 'lib-python',
-                                          'python-%s' % python_version)
             bins_to_remove.append(os.path.join(bin_path,
                                                'python%s' % python_version))
         else:
-            python_lib_dir = os.path.join(path, 'lib', 'python-%s' % version)
             bins_to_remove.append(os.path.join(bin_path, pythonx_bin))
 
         for link_path in bins_to_remove:
