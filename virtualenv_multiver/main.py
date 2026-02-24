@@ -320,7 +320,7 @@ def make_version_sort_key(version):
     """Return a key for a Python version, for sorting purposes.
 
     Args:
-        version (unicode):
+        version (str):
             The provided Python version.
 
     Returns:
@@ -333,7 +333,13 @@ def make_version_sort_key(version):
     else:
         priority = 1
 
-    return [priority] + version.split('.')
+    return [
+        priority,
+        *(
+            int(part)
+            for part in version.split('.')
+        ),
+    ]
 
 
 def main():
@@ -407,15 +413,11 @@ def main():
 
     options = argparser.parse_args(sys.argv[1:])
 
-    if not options.versions:
-        versions = get_pyvers()
+    versions = options.versions or get_pyvers()
 
-        if not versions:
-            sys.stderr.write('Usage: virtualenv-multiver <path> <X.Y> ...\n')
-            sys.exit(1)
-    else:
-        versions = sorted(options.versions,
-                          key=make_version_sort_key)
+    if not versions:
+        sys.stderr.write('Usage: virtualenv-multiver <path> <X.Y> ...\n')
+        sys.exit(1)
 
     path = options.path
     show_output = options.verbose or not options.quiet
@@ -484,7 +486,7 @@ def main():
         common_command.append('--no-wheel')
 
     # Begin building the virtualenvs.
-    for version in versions:
+    for version in sorted(versions, key=make_version_sort_key):
         is_pypy = version.startswith('pypy')
 
         if is_pypy:
